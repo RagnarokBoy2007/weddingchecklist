@@ -1,0 +1,636 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  CheckCircle2, Circle, Clock, MapPin, ChevronDown, ChevronUp, 
+  Users, Heart, Camera, Mic, ClipboardList, Edit2, Save, X,
+  Smartphone, Play, FastForward, Power, BellRing, Settings
+} from 'lucide-react';
+
+const initialScheduleData = [
+  {
+    id: 1,
+    time: "07.00 - 08.00 น.",
+    title: "ทำบุญตักบาตร",
+    location: "วัด",
+    icon: "Heart",
+    details: {
+      couple: "ทำบุญตักบาตรร่วมกันที่วัด (ควรแต่งหน้าทำผมชุดแรกให้เสร็จตั้งแต่ 06.00 น.) ถวายภัตตาหาร/สังฆทาน รับพรจากพระสงฆ์ และกรวดน้ำอุทิศส่วนกุศล",
+      team: "เตรียมชุดใส่บาตร ซองปัจจัย และจัดมุมถ่ายภาพแสงเช้าที่วัด",
+      mc: "-"
+    }
+  },
+  {
+    id: 2,
+    time: "08.00 - 09.00 น.",
+    title: "ต้อนรับแขก & ถ่ายรูปหน้าจุดแจกของชำร่วย",
+    location: "โรงแรมอิมพีเรียลแม่ฮ่องสอน",
+    icon: "Camera",
+    details: {
+      couple: "เดินทางมาถึงโรงแรม ทัชอัพหน้าผมให้เรียบร้อยก่อน 08.45 น. และมายืนประจำจุดเพื่อถ่ายรูปร่วมกับแขกที่หน้าโต๊ะลงทะเบียน/แจกของชำร่วย",
+      team: "เชิญแขกเซ็นอวยพร มอบของชำร่วย เชิญรับประทานของว่าง (Coffee Break) และเช็คความพร้อมของเวที ไมโครโฟน พานสินสอด พานด้ายมงคล",
+      mc: "08.45 น. ประกาศให้แขกเตรียมตัวทยอยเข้าสู่ที่นั่งภายในห้องจัดเลี้ยง"
+    }
+  },
+  {
+    id: 3,
+    time: "09.00 - 09.15 น.",
+    title: "เปิดตัวบ่าวสาว",
+    location: "ห้องจัดเลี้ยง",
+    icon: "Users",
+    details: {
+      couple: "เดินเข้าสู่บริเวณงานตามจังหวะเพลงที่เตรียมไว้ ยิ้มทักทายแขกสองข้างทาง และขึ้นไปยืนประจำจุดกึ่งกลางเวที",
+      team: "ประสานงานเปิดเพลง เปิดประตู และจัดระเบียบทางเดินให้บ่าวสาว",
+      mc: "09.00 น. กล่าวต้อนรับแขกเข้าสู่งานอย่างเป็นทางการ และเชิญบ่าวสาวเข้าสู่บริเวณงานและขึ้นเวที"
+    }
+  },
+  {
+    id: 4,
+    time: "09.15 - 09.45 น.",
+    title: "มอบสินสอด & สวมแหวน",
+    location: "บนเวที",
+    icon: "Heart",
+    details: {
+      couple: "เข้าสู่พิธีสวมแหวนตามฤกษ์ โดยผลัดกันสวมแหวนและไหว้ขอบคุณ ช่างภาพจับภาพจังหวะสวมแหวนและโชว์แหวน",
+      team: "ยกพานสินสอดและพานแหวนมาวางที่โต๊ะพิธีบนเวที อำนวยความสะดวกให้ผู้ใหญ่ฝ่ายชาย",
+      mc: "เชิญคุณพ่อคุณแม่และผู้ใหญ่บนเวที เพื่อประกอบพิธีมอบสินสอดทองหมั้น และสวมแหวน"
+    }
+  },
+  {
+    id: 5,
+    time: "09.45 - 10.15 น.",
+    title: "พิธีมัดมือ (โดยผู้ใหญ่)",
+    location: "บนเวที",
+    icon: "Heart",
+    details: {
+      couple: "รับพรและไหว้ขอบคุณบิดามารดาและผู้ใหญ่อาวุโสแต่ละท่านที่ผูกด้ายมงคลให้",
+      team: "จัดเตรียมพานรับรองด้ายมงคล (ไม่มีบายศรี) เชิญบิดามารดา/ผู้ใหญ่ขึ้นเวที และจัดเตรียมเก้าอี้ 4-6 ตัวบนเวที",
+      mc: "เชิญคุณพ่อคุณแม่ และญาติผู้ใหญ่ของทั้งสองฝ่าย ร่วมผูกด้ายมงคลและกล่าวให้พรบ่าวสาว"
+    }
+  },
+  {
+    id: 6,
+    time: "10.15 - 10.45 น.",
+    title: "กล่าวอวยพร (VIP 3 ท่าน)",
+    location: "บนเวที",
+    icon: "Mic",
+    details: {
+      couple: "ยืนรับฟังคำอวยพร มอบของที่ระลึกขอบคุณ (ถ้ามี) และโค้งไหว้ขอบคุณ VIP แต่ละท่าน",
+      team: "แสตนด์บายส่งไมโครโฟนให้ VIP บริเวณข้างเวที และรับไมค์กลับเมื่อกล่าวจบ",
+      mc: "เชิญแขกผู้ใหญ่ 3 ท่านขึ้นกล่าวอวยพรบนเวที (ท่านละประมาณ 3-5 นาที)"
+    }
+  },
+  {
+    id: 7,
+    time: "10.45 - 11.30 น.",
+    title: "พิธีผูกข้อมือ (แขกทั่วไป)",
+    location: "ด้านล่างเวที",
+    icon: "Users",
+    details: {
+      couple: "นั่งประจำจุดด้านล่างเวทีเพื่อรับการผูกข้อมือจากแขก 200 ท่าน พูดคุยทักทายและถ่ายรูป",
+      team: "จัดเตรียมเก้าอี้ 2 ตัวด้านล่างเวที จัดแถวแขกที่มารอผูกข้อมือ **และแจ้งโรงแรมให้เริ่มเสิร์ฟอาหารมื้อหลัก**",
+      mc: "เชิญแขกผู้มีเกียรติร่วมผูกข้อมือด้านล่างเวที และแจ้งเปิดไลน์อาหารให้แขกรับประทานอาหารกลางวัน"
+    }
+  },
+  {
+    id: 8,
+    time: "11.30 - 12.00 น.",
+    title: "ถ่ายภาพร่วมกับเพื่อนๆ",
+    location: "บนเวที",
+    icon: "Camera",
+    details: {
+      couple: "ถ่ายรูปร่วมกับแก๊งเพื่อนเจ้าบ่าวเจ้าสาวแบบจัดเต็ม สนุกสนาน",
+      team: "จัดรูปขบวนเพื่อนๆ บนเวที แนะนำท่าโพส และคุมเวลาไม่ให้ยืดเยื้อจนเกินไป",
+      mc: "เชิญแก๊งเพื่อนสนิททุกท่านขึ้นมาบนเวทีเพื่อเก็บภาพความประทับใจ"
+    }
+  },
+  {
+    id: 9,
+    time: "12.00 - 12.30 น.",
+    title: "ขอบคุณแขก & จบพิธีการ",
+    location: "บริเวณห้องจัดเลี้ยง",
+    icon: "Heart",
+    details: {
+      couple: "เดินทักทายแขกตามโต๊ะ (Table greeting) ขอบคุณผู้ร่วมงาน และถ่ายภาพร่วมกับแขกที่ยังอยู่",
+      team: "ตรวจสอบความเรียบร้อย รวบรวมซอง ของมีค่า และของชำร่วยที่เหลือส่งคืนบ่าวสาวหรือครอบครัว",
+      mc: "กล่าวปิดงานอย่างเป็นทางการ ขอบคุณแขกที่มาร่วมงาน และอวยพรให้แขกมีความสุขกับมื้ออาหาร"
+    }
+  }
+];
+
+const renderIcon = (iconName, className) => {
+  switch (iconName) {
+    case 'Heart': return <Heart className={className} />;
+    case 'Camera': return <Camera className={className} />;
+    case 'Users': return <Users className={className} />;
+    case 'Mic': return <Mic className={className} />;
+    default: return <Clock className={className} />;
+  }
+};
+
+export default function WeddingScheduleApp() {
+  const [schedule, setSchedule] = useState(initialScheduleData);
+  const [completedItems, setCompletedItems] = useState([]);
+  const [expandedItem, setExpandedItem] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const [lineId, setLineId] = useState("");
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [notifiedTasks, setNotifiedTasks] = useState([]);
+  const [toasts, setToasts] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!isTestMode) {
+        setCurrentTime(new Date());
+      } else {
+        // ในโหมดจำลอง ให้เวลาเดินปกติตามเวลาที่ถูกจำลองไว้ (วินาทีละ 1 วินาที)
+        setCurrentTime(prev => new Date(prev.getTime() + 1000));
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isTestMode]);
+
+  const extractEndTime = (timeStr) => {
+    const parts = timeStr.split('-');
+    if (parts.length > 1) {
+      const timePart = parts[1].trim().split(' ')[0]; // เช่น "08.00"
+      const [h, m] = timePart.split('.').map(Number);
+      return { h, m };
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    schedule.forEach(item => {
+      if (completedItems.includes(item.id)) return;
+      if (notifiedTasks.includes(item.id)) return;
+
+      const end = extractEndTime(item.time);
+      if (!end) return;
+
+      const itemEndDateTime = new Date(currentTime);
+      itemEndDateTime.setHours(end.h, end.m, 0, 0);
+
+      const isWeddingDay = currentTime.getFullYear() === 2027 && currentTime.getMonth() === 0 && currentTime.getDate() === 3;
+
+      // ถ้าเป็นวันแต่งงาน และเวลาปัจจุบันเลยเวลาจบของกิจกรรมนั้นแล้ว
+      if (isWeddingDay && currentTime > itemEndDateTime) {
+        const notifyId = Date.now() + Math.random();
+        const msg = `ส่งแจ้งเตือนเข้า LINE ID: ${lineId || '[ไม่ได้ระบุ ID]'} \n⚠️ กิจกรรม "${item.title}" เลยกำหนดเวลาแล้ว กรุณาตรวจสอบ!`;
+        
+        setToasts(prev => [...prev, { id: notifyId, msg, title: "LINE Notify" }]);
+        setNotifiedTasks(prev => [...prev, item.id]);
+
+        // ซ่อนแจ้งเตือนอัตโนมัติ
+        setTimeout(() => {
+          setToasts(prev => prev.filter(t => t.id !== notifyId));
+        }, 8000);
+      }
+    });
+  }, [currentTime, schedule, completedItems, notifiedTasks, lineId]);
+
+  const startTestMode = () => {
+    setIsTestMode(true);
+    // ตั้งเวลาจำลองไปที่ 3 ม.ค. 2570 เวลา 07:59:50 น. (10 วินาทีก่อนคิวแรกจบ)
+    setCurrentTime(new Date('2027-01-03T07:59:50'));
+    setNotifiedTasks([]); 
+  };
+
+  const advanceTime = () => {
+    setCurrentTime(prev => new Date(prev.getTime() + 10 * 60000)); // เร่ง 10 นาที
+  };
+
+  const stopTestMode = () => {
+    setIsTestMode(false);
+    setCurrentTime(new Date());
+    setNotifiedTasks([]);
+  };
+
+  const progress = Math.round((completedItems.length / schedule.length) * 100);
+
+  const toggleComplete = (id) => {
+    setCompletedItems(prev => 
+      prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+    );
+  };
+
+  const toggleExpand = (id) => {
+    if (editingId) return; // Prevent collapse while editing
+    setExpandedItem(prev => prev === id ? null : id);
+  };
+
+  const startEdit = (item, e) => {
+    e.stopPropagation();
+    setEditingId(item.id);
+    setEditForm({ ...item });
+    setExpandedItem(item.id); // Ensure details are visible for editing
+  };
+
+  const cancelEdit = (e) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const saveEdit = (e) => {
+    e.stopPropagation();
+    setSchedule(prev => prev.map(item => item.id === editingId ? editForm : item));
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const handleFormChange = (field, value, isDetail = false) => {
+    if (isDetail) {
+      setEditForm(prev => ({
+        ...prev,
+        details: { ...prev.details, [field]: value }
+      }));
+    } else {
+      setEditForm(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-[#fcfbf9] to-[#f4f7f6] p-4 md:p-8 font-sans selection:bg-rose-200">
+      <div className="max-w-4xl mx-auto space-y-6">
+        
+        {/* Header Section (TJ Theme) */}
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden border border-rose-100">
+          <div className="bg-gradient-to-r from-rose-300 via-rose-200 to-rose-300 h-2 w-full"></div>
+          <div className="p-8 text-center relative">
+            
+            {/* Realtime Clock */}
+            <div className="absolute top-6 right-6 flex flex-col items-end">
+              <div className="flex items-center gap-2 text-rose-700 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100 shadow-sm">
+                <Clock className="w-4 h-4 animate-pulse" />
+                <span className="font-mono text-sm font-semibold tracking-wider">
+                  {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second:'2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Monogram & Title */}
+            <div className="flex flex-col items-center justify-center mb-6 mt-4">
+              <h1 className="text-5xl md:text-6xl font-serif text-rose-800 mb-1 tracking-wider flex items-center gap-4">
+                T <span className="text-3xl text-rose-300 font-light">&</span> J
+              </h1>
+              <p className="text-sm md:text-base tracking-[0.3em] uppercase text-gray-500 font-medium">
+                Thanapol <span className="text-rose-300">&</span> Jaruta
+              </p>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              กำหนดการพิธีมงคลสมรส
+            </h2>
+            <p className="text-rose-600 font-medium text-lg mb-6 flex items-center justify-center gap-2">
+              3 มกราคม 2570
+            </p>
+            
+            <div className="flex flex-col md:flex-row justify-center items-center gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                <MapPin className="w-4 h-4 text-rose-400" />
+                <span>วัด (เช้า) & รร.อิมพีเรียลแม่ฮ่องสอน</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                <Users className="w-4 h-4 text-rose-400" />
+                <span>แขก 200 ท่าน</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="bg-rose-50/50 px-8 py-6 border-t border-rose-100">
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-sm font-bold text-gray-600 tracking-wide">PROGRESS</span>
+              <span className="text-xl font-bold text-rose-500">{progress}%</span>
+            </div>
+            <div className="w-full bg-rose-100/50 rounded-full h-4 shadow-inner overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-rose-300 to-rose-400 h-full rounded-full transition-all duration-700 ease-out relative" 
+                style={{ width: `${progress}%` }}
+              >
+                <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 text-center mt-3 font-medium">
+              {completedItems.length === schedule.length 
+                ? "🎉 เสร็จสิ้นพิธีการทั้งหมด ยินดีด้วยครับบ่าวสาว!" 
+                : `ทำสำเร็จแล้ว ${completedItems.length} จาก ${schedule.length} ขั้นตอน`}
+            </p>
+          </div>
+        </div>
+
+        {}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div 
+            className="px-6 py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            <div className="flex items-center gap-2 text-gray-700 font-bold">
+              <Settings className="w-5 h-5 text-rose-400" />
+              ตั้งค่าการแจ้งเตือน & โหมดทดสอบระบบ
+            </div>
+            {showSettings ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </div>
+          
+          {showSettings && (
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 space-y-4">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1 w-full">
+                  <label className="block text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                    <Smartphone className="w-4 h-4 text-emerald-500" /> LINE ID สำหรับรับการแจ้งเตือน
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="ระบุ LINE ID..."
+                    value={lineId}
+                    onChange={(e) => setLineId(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  />
+                </div>
+                <div className="text-sm text-gray-500 pb-2 md:pb-3 w-full md:w-auto">
+                  * จะแจ้งเตือนเมื่อกิจกรรมยังไม่ถูกติ๊กเสร็จ และเลยเวลาที่กำหนด
+                </div>
+              </div>
+
+              <div className="p-4 bg-white border border-rose-100 rounded-xl space-y-3">
+                <h4 className="font-bold text-gray-700 text-sm flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-rose-400" /> ตัวจำลองเวลา (Test Simulator)
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {!isTestMode ? (
+                    <button onClick={startTestMode} className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+                      <Play className="w-4 h-4" /> เริ่มจำลองเวลา (ไปที่ 3 ม.ค. 70)
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={advanceTime} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+                        <FastForward className="w-4 h-4" /> เร่งเวลา +10 นาที
+                      </button>
+                      <button onClick={stopTestMode} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-all">
+                        <Power className="w-4 h-4" /> ปิดการจำลอง
+                      </button>
+                    </>
+                  )}
+                </div>
+                {isTestMode && (
+                  <div className="text-xs text-rose-500 font-medium animate-pulse">
+                    * กำลังรันโหมดจำลอง: ลองกดเร่งเวลาเพื่อดูการแจ้งเตือนเมื่อเลยกำหนด
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {}
+        <div className="space-y-4 pb-12">
+          {schedule.map((item) => {
+            const isCompleted = completedItems.includes(item.id);
+            const isExpanded = expandedItem === item.id;
+            const isEditing = editingId === item.id;
+            
+            const isOverdue = (() => {
+              if (isCompleted) return false;
+              const end = extractEndTime(item.time);
+              if (!end) return false;
+              const itemEndDateTime = new Date(currentTime);
+              itemEndDateTime.setHours(end.h, end.m, 0, 0);
+              return (currentTime.getFullYear() === 2027 && currentTime.getMonth() === 0 && currentTime.getDate() === 3) && (currentTime > itemEndDateTime);
+            })();
+
+            return (
+              <div 
+                key={item.id} 
+                className={`bg-white rounded-2xl shadow-sm border overflow-hidden transition-all duration-300 ${
+                  isCompleted && !isEditing 
+                    ? 'border-emerald-200 bg-emerald-50/20 opacity-80' 
+                    : isOverdue && !isEditing
+                      ? 'border-red-400 bg-red-50/30 shadow-red-100 ring-1 ring-red-300'
+                      : 'border-gray-100 hover:shadow-md'
+                } ${isEditing ? 'ring-2 ring-rose-200 shadow-lg' : ''}`}
+              >
+                {/* Item Header */}
+                <div 
+                  className={`flex items-start sm:items-center p-5 ${!isEditing ? 'cursor-pointer' : ''}`}
+                  onClick={() => !isEditing && toggleExpand(item.id)}
+                >
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isEditing) toggleComplete(item.id);
+                    }}
+                    disabled={isEditing}
+                    className={`mr-4 mt-1 sm:mt-0 flex-shrink-0 focus:outline-none transition-transform ${isEditing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-8 h-8 text-rose-500" />
+                    ) : (
+                      <Circle className="w-8 h-8 text-gray-200 hover:text-rose-300 transition-colors" />
+                    )}
+                  </button>
+                  
+                  <div className="flex-grow pr-4 w-full">
+                    {/* View Mode Header */}
+                    {!isEditing ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <h3 className={`font-bold text-lg transition-colors ${
+                            isCompleted ? 'text-gray-400 line-through decoration-emerald-300 decoration-2' : 
+                            isOverdue ? 'text-red-600' : 'text-gray-800'
+                          }`}>
+                            {item.title}
+                          </h3>
+                          {isOverdue && !isCompleted && (
+                            <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                              <BellRing className="w-3 h-3" /> Overdue
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-y-1 gap-x-3 text-sm mt-1 font-medium">
+                          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${isOverdue && !isCompleted ? 'bg-red-100/50 text-red-500' : 'bg-gray-50 text-gray-500'}`}>
+                            <Clock className={`w-3.5 h-3.5 ${isOverdue && !isCompleted ? 'text-red-500' : 'text-rose-400'}`} />
+                            {item.time}
+                          </span>
+                          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${isOverdue && !isCompleted ? 'bg-red-100/50 text-red-500' : 'bg-gray-50 text-gray-500'}`}>
+                            <MapPin className={`w-3.5 h-3.5 ${isOverdue && !isCompleted ? 'text-red-500' : 'text-rose-400'}`} />
+                            {item.location}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      /* Edit Mode Header */
+                      <div className="space-y-3 w-full" onClick={e => e.stopPropagation()}>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 mb-1">หัวข้อกิจกรรม</label>
+                          <input 
+                            type="text" 
+                            value={editForm.title}
+                            onChange={(e) => handleFormChange('title', e.target.value)}
+                            className="w-full px-3 py-2 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 text-gray-800 font-bold"
+                          />
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="flex-1">
+                            <label className="block text-xs font-semibold text-gray-500 mb-1">เวลา</label>
+                            <input 
+                              type="text" 
+                              value={editForm.time}
+                              onChange={(e) => handleFormChange('time', e.target.value)}
+                              className="w-full px-3 py-2 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 text-gray-600 text-sm"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs font-semibold text-gray-500 mb-1">สถานที่</label>
+                            <input 
+                              type="text" 
+                              value={editForm.location}
+                              onChange={(e) => handleFormChange('location', e.target.value)}
+                              className="w-full px-3 py-2 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 text-gray-600 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex-shrink-0 flex items-center gap-2 mt-1 sm:mt-0">
+                    {!isEditing ? (
+                      <>
+                        <button 
+                          onClick={(e) => startEdit(item, e)}
+                          className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
+                          title="แก้ไขข้อมูล"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                        <div className="text-gray-400 ml-1 cursor-pointer">
+                          {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button 
+                          onClick={cancelEdit}
+                          className="p-2 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+                        >
+                          <X className="w-4 h-4" /> <span className="hidden sm:inline">ยกเลิก</span>
+                        </button>
+                        <button 
+                          onClick={saveEdit}
+                          className="p-2 text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium shadow-sm"
+                        >
+                          <Save className="w-4 h-4" /> <span className="hidden sm:inline">บันทึก</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {}
+                {isExpanded && (
+                  <div className="px-5 pb-6 pt-3 bg-gradient-to-b from-gray-50/50 to-[#fdfcfb] border-t border-gray-100">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                      
+                      {/* บ่าวสาว */}
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-rose-100/60 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-rose-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="bg-rose-100 p-1.5 rounded-lg text-rose-600 shadow-sm">
+                            <Heart className="w-4 h-4" />
+                          </div>
+                          <h4 className="font-bold text-gray-800 text-sm">บ่าวสาว (TJ)</h4>
+                        </div>
+                        {!isEditing ? (
+                          <p className="text-sm text-gray-600 leading-relaxed">{item.details.couple}</p>
+                        ) : (
+                          <textarea 
+                            value={editForm.details.couple}
+                            onChange={(e) => handleFormChange('couple', e.target.value, true)}
+                            className="w-full h-24 px-3 py-2 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300 text-sm text-gray-700 resize-none"
+                          />
+                        )}
+                      </div>
+
+                      {/* ทีมงาน */}
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-emerald-100/60 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="bg-emerald-100 p-1.5 rounded-lg text-emerald-600 shadow-sm">
+                            <ClipboardList className="w-4 h-4" />
+                          </div>
+                          <h4 className="font-bold text-gray-800 text-sm">ทีมงาน / รันคิว</h4>
+                        </div>
+                        {!isEditing ? (
+                          <p className="text-sm text-gray-600 leading-relaxed">{item.details.team}</p>
+                        ) : (
+                          <textarea 
+                            value={editForm.details.team}
+                            onChange={(e) => handleFormChange('team', e.target.value, true)}
+                            className="w-full h-24 px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 text-sm text-gray-700 resize-none"
+                          />
+                        )}
+                      </div>
+
+                      {/* พิธีกร */}
+                      <div className="bg-white p-4 rounded-xl shadow-sm border border-amber-100/60 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="bg-amber-100 p-1.5 rounded-lg text-amber-600 shadow-sm">
+                            <Mic className="w-4 h-4" />
+                          </div>
+                          <h4 className="font-bold text-gray-800 text-sm">พิธีกร (MC)</h4>
+                        </div>
+                        {!isEditing ? (
+                          <p className="text-sm text-gray-600 leading-relaxed">{item.details.mc}</p>
+                        ) : (
+                          <textarea 
+                            value={editForm.details.mc}
+                            onChange={(e) => handleFormChange('mc', e.target.value, true)}
+                            className="w-full h-24 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-300 text-sm text-gray-700 resize-none"
+                          />
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+      </div>
+
+      {}
+      <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none w-80 max-w-full">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="bg-white/95 backdrop-blur-sm border-l-4 border-emerald-500 rounded-lg shadow-xl p-4 transform transition-all animate-[slideIn_0.3s_ease-out]">
+            <div className="flex items-start gap-3">
+              <div className="bg-emerald-100 p-2 rounded-full flex-shrink-0">
+                <BellRing className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 text-sm mb-1">{toast.title}</h4>
+                <p className="text-xs text-gray-600 whitespace-pre-line">{toast.msg}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}} />
+    </div>
+  );
+}
